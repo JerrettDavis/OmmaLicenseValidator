@@ -1,4 +1,4 @@
-# Omma License Validator
+# OMMA License Validator
 
 This is a simple web wrapper to interface with the Oklahoma Medical Marijuana Authority license validation application. It only returns details that are accessible from the publicly accessible validation tool at [https://ommaverify.ok.gov](https://ommaverify.ok.gov).
 
