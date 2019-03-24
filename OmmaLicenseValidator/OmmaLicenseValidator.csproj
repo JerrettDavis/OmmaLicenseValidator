@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>JD Davis</Authors>
+    <Company>DispenseMe</Company>
+    <Product>OmmaLicenseValidator</Product>
+    <Description>A simple library to check Oklahoma Medical Marijuana card licenses.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
