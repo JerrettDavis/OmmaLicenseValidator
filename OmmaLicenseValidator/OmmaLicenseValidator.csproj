@@ -7,6 +7,7 @@
     <Product>OmmaLicenseValidator</Product>
     <Description>A simple library to check Oklahoma Medical Marijuana card licenses.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

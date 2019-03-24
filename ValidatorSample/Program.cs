@@ -42,7 +42,7 @@ namespace ValidatorSample
         {
             Console.WriteLine("Fetching...");
 
-            var result = await _licenseValidator.GetValidatorReponse(license);
+            var result = await _licenseValidator.GetValidatorResponseAsync(license);
 
             Console.WriteLine("License Details ---");
             Console.WriteLine($"County Issued: {result.CountyIssued}");

@@ -41,38 +41,86 @@ namespace OmmaLicenseValidator.WebService
         /// </summary>
         /// <param name="license">The license number of the id to check.</param>
         /// <returns>The license's details if valid.</returns>
-        public async Task<ValidatorResponse> GetLicenseValidationResponse(string license)
+        public ValidatorResponse GetLicenseValidationResponse(string license)
         {
-            var result = await _httpClient.Client.GetAsync(OmmaVerifyUrl);
-            var verificationToken = await GetRequestVerificationToken(result);
-            var postResult = await PostValidationResponse(license, verificationToken);
-            var response = await GetValidationReponse(postResult);
+            var result = _httpClient.Client.GetAsync(OmmaVerifyUrl).Result;
+            var verificationToken = GetRequestVerificationToken(result);
+            var postResult = PostValidationResponse(license, verificationToken);
+            var response = GetValidationResponse(postResult);
 
             return response;
         }
 
-        private static async Task<string> GetRequestVerificationToken(HttpResponseMessage result)
+        /// <summary>
+        /// Returns the details about the entered license.
+        /// </summary>
+        /// <param name="license">The license number of the id to check.</param>
+        /// <returns>The license's details if valid.</returns>
+        public async Task<ValidatorResponse> GetLicenseValidationResponseAsync(string license)
         {
-            var doc = await GetHtmlDocument(result);
+            var result = await _httpClient.Client.GetAsync(OmmaVerifyUrl);
+            var verificationToken = await GetRequestVerificationTokenAsync(result);
+            var postResult = await PostValidationResponseAsync(license, verificationToken);
+            var response = await GetValidationResponseAsync(postResult);
+
+            return response;
+        }
+
+        private static string GetRequestVerificationToken(HttpResponseMessage result)
+        {
+            var doc = GetHtmlDocument(result);
             var node = doc.DocumentNode.SelectSingleNode(Selector);
 
             return node.GetAttributeValue(ValueName, "");
         }
 
-        private async Task<HttpResponseMessage> PostValidationResponse(string license, string verificationToken)
+        private static async Task<string> GetRequestVerificationTokenAsync(HttpResponseMessage result)
         {
-            var content = new FormUrlEncodedContent(new[]
-            {
-                new KeyValuePair<string,string>(LicenseFieldName, license),
-                new KeyValuePair<string, string>(TokenFieldName, verificationToken)
-            });
+            var doc = await GetHtmlDocumentAsync(result);
+            var node = doc.DocumentNode.SelectSingleNode(Selector);
+
+            return node.GetAttributeValue(ValueName, "");
+        }
+
+        private HttpResponseMessage PostValidationResponse(string license, string verificationToken)
+        {
+            var content = GetFormUrlEncodedContent(license, verificationToken);
+
+            return _httpClient.Client.PostAsync(OmmaVerifyUrl, content).Result;
+        }
+
+        private async Task<HttpResponseMessage> PostValidationResponseAsync(string license, string verificationToken)
+        {
+            var content = GetFormUrlEncodedContent(license, verificationToken);
 
             return await _httpClient.Client.PostAsync(OmmaVerifyUrl, content);
         }
 
-        private static async Task<ValidatorResponse> GetValidationReponse(HttpResponseMessage result)
+        private static FormUrlEncodedContent GetFormUrlEncodedContent(string license, string verificationToken)
         {
-            var doc = await GetHtmlDocument(result);
+            return new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string,string>(LicenseFieldName, license),
+                new KeyValuePair<string, string>(TokenFieldName, verificationToken)
+            });
+        }
+
+        private static ValidatorResponse GetValidationResponse(HttpResponseMessage result)
+        {
+            var doc = GetHtmlDocument(result);
+
+            return ShapeHtmlDocument(doc);
+        }
+
+        private static async Task<ValidatorResponse> GetValidationResponseAsync(HttpResponseMessage result)
+        {
+            var doc = await GetHtmlDocumentAsync(result);
+
+            return ShapeHtmlDocument(doc);
+        }
+
+        private static ValidatorResponse ShapeHtmlDocument(HtmlDocument doc)
+        {
             var county = doc.DocumentNode?.SelectSingleNode(CountyPath)?.LastChild?.InnerText?.CleanString();
             var date = doc.DocumentNode?.SelectSingleNode(DatePath)?.LastChild?.InnerText?.CleanString();
             var approved = doc.DocumentNode?.SelectSingleNode(ApprovedPath)?.LastChild?.InnerText?.CleanString();
@@ -85,7 +133,16 @@ namespace OmmaLicenseValidator.WebService
             };
         }
 
-        private static async Task<HtmlDocument> GetHtmlDocument(HttpResponseMessage result)
+        private static HtmlDocument GetHtmlDocument(HttpResponseMessage result)
+        {
+            var stream = result.Content.ReadAsStreamAsync().Result;
+            var doc = new HtmlDocument();
+            doc.Load(stream);
+
+            return doc;
+        }
+
+        private static async Task<HtmlDocument> GetHtmlDocumentAsync(HttpResponseMessage result)
         {
             var stream = await result.Content.ReadAsStreamAsync();
             var doc = new HtmlDocument();
